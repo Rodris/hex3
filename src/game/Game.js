@@ -1,6 +1,6 @@
 /** @jsx jsx */
 
-import { css, jsx } from "@emotion/core"
+import { jsx } from "@emotion/core"
 import { ScoreAndMoves, HexesPowers } from './UI';
 import Board from './Board';
 import { HexTypes } from "./Hex"
@@ -82,19 +82,37 @@ function Game() {
 	var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
 	var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
 
+	// Calculates board size.
+	const boardSize = Math.min(500, w, h);
+
 	// Style
-	const style = css({
+	const style = {
+		maxWidth: 500,
+		maxHeight: 800,
 		height: "100%",
 		display: "flex",
-		flexDirection: "column"
-	});
+		flexDirection: "column",
+		margin: "auto"
+	};
+
+	// Board bg style.
+	const bgStyle = {
+		display: "flex",
+		flexDirection: "column",
+		flexGrow: 1,
+		backgroundImage:  "linear-gradient(0deg, #666666ff, #a5a6a5ff)",
+		width: boardSize
+	};
 
 	return (
 		<div className="Game" css={style}>
-			<div style={{flexGrow: 1}}></div>
 			<ScoreAndMoves gameSession={gameSession}></ScoreAndMoves>
 			<HexesPowers onScoresPositions={(pos) => scoresPositions = pos}></HexesPowers>
-			<Board hexes={board} getScoresPositions={() => scoresPositions} events={boardEvents}></Board>
+			<div css={bgStyle}>
+				<div className="filler"></div>
+				<Board size={boardSize} hexes={board} getScoresPositions={() => scoresPositions} events={boardEvents}></Board>
+				<div className="filler"></div>
+			</div>
 		</div>
   	);
 }

@@ -367,8 +367,8 @@ function Board(props) {
 	// Board style
 	let style = css({
 		position: "relative",
-		width: "100vmin",
-		height: "100vmin",
+		width: props.size,
+		height: props.size,
 		backgroundImage: `URL(${bg})`,
 		backgroundSize: "contain"
 	});

@@ -3,7 +3,6 @@
 import { jsx } from "@emotion/core";
 import Hex, { HexTypes } from "./Hex"
 import { useEffect } from "react";
-import bg from "./ui.svg"
 
 // Total score.
 function ScoreAndMoves(props) {
@@ -33,7 +32,7 @@ function ScoreAndMoves(props) {
 	// Style
 	const style = {
 		zIndex: 10,
-		backgroundImage: `URL(${bg})`,
+		backgroundImage:  "linear-gradient(0deg, #232323ff, #646464ff)",
 		display: "flex",
 		padding: 4,
 		alignItems: "center",
@@ -95,7 +94,7 @@ function HexesPowers(props) {
 	let uiStyle = {
 		display: "flex",
 		zIndex: 1,
-		backgroundImage: `URL(${bg})`
+		backgroundImage:  "linear-gradient(0deg, #232323ff, #646464ff)"
 	};
 
 	let ui =
