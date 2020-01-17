@@ -2,44 +2,108 @@
 
 import { jsx, css, keyframes } from "@emotion/core";
 import HexUtil from "./HexUtil"
-import Hex, { HexTypesArray } from "./Hex"
+import Hex, { HexTypesArray, HexTypes } from "./Hex"
 import bg from "./board.svg"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Util from "../Util";
+
+/**
+ * State machine:
+ * Init -> Ready
+ * Ready -> (match) ? Match : Unmatch
+ * Unmatch -> Ready
+ * Match -> Explosion
+ * Explosion -> Fall
+ * Fall -> (match) ? Match : Ready
+ */
+const
+	GS_INIT = "init",
+	GS_READY = "ready",
+	GS_UNMATCH = "unmatch",
+	GS_MATCH = "match",
+	GS_EXPLOSION = "explosion",
+	GS_FALL = "fall",
+	GS_OVER = "over";
+
+// Constants
+const
+	noHex = { x: -1, y: -1, type: "none" },
+	leftIni = 10,
+	topIni = -14,
+	leftOffset = 11,
+	topOffset = 6.5;
+
+// Declarations
+let typesBuffer = [];
+
+// Returns a type from the type buffer.
+const getType = () => {
+	// Keeps the buffer with a minimum size.
+	while (typesBuffer.length <= 5) typesBuffer = typesBuffer.concat(Object.values(HexTypes));
+
+	// Selects a random type.
+	return typesBuffer.splice(Util.randomIndex(typesBuffer), 1)[0];
+};
+
+// Inits a new game.
+const init = () => {
+	// Builds board.
+	const gridSize = 7;
+	let board = [];
+	for (let x = 0; x < gridSize; x++) {
+		board.push([]);
+		for (let y = 0; y < gridSize; y++) {
+			// Checks if hex is out of the board.
+			if ((x**2 + y**2 <= 4) || ((gridSize - x - 1)**2 + (gridSize - y - 1)**2 <= 4)) {
+				board[x][y] = { x: x, y: y };
+				continue;
+			}
+
+			// Game board.
+			board[x][y] = { x: x, y: y, type: getType(), state: "init" };
+			board[x][y].fallFrom = { x: x, y: y - (gridSize + 3) };
+		}
+	}
+
+	// Undoes matches.
+	let matches = HexUtil.findMatches(board);
+	let totalCount = 100;
+	while (matches.length > 0 && totalCount > 0) {
+		// Replaces some types.
+		matches.forEach(match => {
+			match[Util.randomIndex(match)].type = getType();
+		});
+
+		// Checks for new matches.
+		matches = HexUtil.findMatches(board);
+		totalCount--;
+	}
+
+	return board;
+};
 
 // Hex board.
 function Board(props) {
-	/**
-	 * State machine:
-	 * Init -> Ready
-	 * Ready -> (match) ? Match : Unmatch
-	 * Unmatch -> Ready
-	 * Match -> Explosion
-	 * Explosion -> Fall
-	 * Fall -> (match) ? Match : Ready
-	 */
-	const
-		GS_INIT = "init",
-		GS_READY = "ready",
-		GS_UNMATCH = "unmatch",
-		GS_MATCH = "match",
-		GS_EXPLOSION = "explosion",
-		GS_FALL = "fall";
-
-	// Constants
-	const
-		noHex = { x: -1, y: -1, type: "none" },
-		leftIni = 10,
-		topIni = -14,
-		leftOffset = 11,
-		topOffset = 6.5;
-
 	// State
 	let [ gameState, setGameState ] = useState(GS_INIT);
+	let [ slots, setSlots ] = useState(null);
 	let [ selectedHex, setSelectedHex ] = useState(noHex);
 	let [ matches, setMatches ] = useState([]);
-	let hexes = props.hexes;
+	let [ hexes ] = useState(init());
 	let qtdAnimations = 0;
+
+	// Traverses all hexes in board.
+	const forHex = (onHex) => {
+		for (let x = 0; x < hexes.length; x++) {
+			for (let y = hexes.length - 1; y >= 0; y--) {
+				// Ignores hexes out of the board.
+				if (!hexes[x][y].type) continue;
+
+				// Apply to hex.
+				onHex(hexes[x][y], x, y);
+			}
+		}
+	};
 
 	// Calculates the position of an hex.
 	const calcPos = (hex, unit = "%") => {
@@ -51,15 +115,21 @@ function Board(props) {
 
 	// Builds the initial animation for an hex.
 	const buildAnimationInit = (hex) => {
-		const iniPos = (hex.x * topOffset + (hex.y - hexes.length - 1) * 2 * topOffset);
-		const endPos = (hex.x * topOffset + hex.y * 2 * topOffset);
-		const hexFallAnim = keyframes({
-			from: { top: (topIni + iniPos) + "%" },
-			to: { top: (topIni + endPos) + "%" }
+		const pos1 = calcPos(hex.fallFrom);
+		const pos2 = calcPos(hex);
+		const anim = keyframes({
+			from: pos1,
+			to: pos2
 		});
-		const animationDuration = 1.0 + 16 / endPos;
 
-		return `${hexFallAnim} ${animationDuration}s ease`;
+		const bottomPos = ((hexes.length >> 1) + (hexes.length - 1) * 2);
+		const hexPos = (hex.x + hex.y * 2);
+		let animationDuration = 1 + (hex.y - hex.fallFrom.y) / hexes.length - hexPos / bottomPos;
+		if (hex.y > hexes.length) {
+			animationDuration += 2;
+		}
+
+		return `${anim} ${animationDuration}s ease`;
 	};
 
 	// Builds the unmatch animation for an hex.
@@ -115,19 +185,13 @@ function Board(props) {
 		return `${anim} 1.2s ease`;
 	};
 
-	// Builds the fall animation for an hex.
-	const buildAnimationFall = (hex) => {
+	// Builds the over animation for an hex.
+	const buildAnimationOver = (hex) => {
 		// Calculates positions.
-		const pos1 = calcPos(hex.fallFrom);
-		const pos2 = calcPos(hex);
+		hex.fallFrom = { x: hex.x, y: hex.y };
+		hex.y += 2 * hexes.length;
 
-		// Builds animation.
-		const anim = keyframes`
-			from { ${pos1} }
-			to { ${pos2} }
-		`;
-
-		return `${anim} 1.0s ease`;
+		return buildAnimationInit(hex);
 	};
 
 	// Builds the animation for an hex.
@@ -141,7 +205,8 @@ function Board(props) {
 			case GS_UNMATCH: animation = buildAnimationUnmatch(hex); break;
 			case GS_MATCH: animation = buildAnimationMatch(hex); break;
 			case GS_EXPLOSION: animation = buildAnimationExplosion(hex); break;
-			case GS_FALL: animation = buildAnimationFall(hex); break;
+			case GS_FALL: animation = buildAnimationInit(hex); break;
+			case GS_OVER: animation = buildAnimationOver(hex); break;
 			default: return;
 		}
 
@@ -153,6 +218,12 @@ function Board(props) {
 
 	// Handles animation end event.
 	const onAnimationEnd = (hex) => {
+		// Checks if hex is over.
+		 if (hex.state === GS_OVER) {
+			// Removes it from board.
+			delete hex.type;
+		}
+
 		// One less animation.
 		qtdAnimations--;
 
@@ -187,47 +258,42 @@ function Board(props) {
 				})
 
 				// Start the fall animation.
-				for (let x = 0; x < hexes.length; x++) {
-					for (let y = hexes.length - 1; y >= 0; y--) {
-						// Validates hex.
-						if (!hexes[x][y].type) continue;
+				forHex((hex, x, y) => {
+					// Checks if slot is empty.
+					if (hex === noHex) {
+						// Brings an hex down.
+						let yUp = y - 1;
+						let hexToFall = hexes[x][yUp];
 
-						// Checks if slot is empty.
-						if (hexes[x][y] === noHex) {
-							// Brings an hex down.
-							let yUp = y - 1;
-							let hexToFall = hexes[x][yUp];
-
-							// Finds a non empty hex.
-							while (hexToFall && hexToFall.type && hexToFall === noHex) {
-								yUp--;
-								hexToFall = hexes[x][yUp];
-							}
-
-							// Checks if no hexes were available in column.
-							if (!hexToFall || !hexToFall.type) {
-								// Adds a new hex from the ones that exploded.
-								hexToFall = explodedHexes.pop();
-								hexToFall.fallFrom = { x: x, y: y - hexes.length - 1 }
-								hexToFall.type = Util.randomValue(HexTypesArray);
-							} else {
-								// Move hex down.
-								hexToFall.fallFrom = { x: hexToFall.x, y: hexToFall.y }
-								hexes[x][hexToFall.y] = noHex;
-							}
-
-							// Adds the fall animation to the hex.
-							hexes[x][y] = hexToFall;
-							hexToFall.x = x;
-							hexToFall.y = y;
-							hexToFall.state = GS_FALL;
-							buildAnimation(hexToFall);
+						// Finds a non empty hex.
+						while (hexToFall && hexToFall.type && hexToFall === noHex) {
+							yUp--;
+							hexToFall = hexes[x][yUp];
 						}
+
+						// Checks if no hexes were available in column.
+						if (!hexToFall || !hexToFall.type) {
+							// Adds a new hex from the ones that exploded.
+							hexToFall = explodedHexes.pop();
+							hexToFall.fallFrom = { x: x, y: y - hexes.length - 1 }
+							hexToFall.type = Util.randomValue(HexTypesArray);
+						} else {
+							// Move hex down.
+							hexToFall.fallFrom = { x: hexToFall.x, y: hexToFall.y }
+							hexes[x][hexToFall.y] = noHex;
+						}
+
+						// Adds the fall animation to the hex.
+						hexes[x][y] = hexToFall;
+						hexToFall.x = x;
+						hexToFall.y = y;
+						hexToFall.state = GS_FALL;
+						buildAnimation(hexToFall);
 					}
-				}
+				});
 			} else {
 				// Game ready.
-				setGameState(GS_READY);
+				setGameReady();
 			}
 		}
 
@@ -249,8 +315,35 @@ function Board(props) {
 				setExplosionState();
 			} else {
 				// Game ready.
-				setGameState(GS_READY);
+				setGameReady();
 			}
+		}
+		// Checks if it was the game over animation.
+		else if (gameState === GS_OVER) {
+			// Distaches event to game.
+			props.events.onGameOver();
+		}
+	};
+
+	// Sets game ready state.
+	const setGameReady = () => {
+		// Checks if game is over.
+		if (props.gameOver) {
+			// Starts over animation.
+			forHex(hex => {
+				// Over state for hex.
+				hex.state = GS_OVER;
+			});
+
+			// Game over.
+			setGameState(GS_OVER);
+
+			// Writes game over on board.
+			buildSlots(true);
+
+		} else {
+			// Game ready.
+			setGameState(GS_READY);
 		}
 	};
 
@@ -283,42 +376,63 @@ function Board(props) {
 		})
 	};
 
-	// Builds hexes positions.
-	let slots = [];
-	let hexesItems = [];
+	// Builds hexes slots.
+	const buildSlots = (gameOver = false) => {
+		// Initializations
+		let newSlots = [];
 
-	hexes.forEach(hexesX => {
-		hexesX.forEach(hex => {
-			// Ignores hexes out of the board.
-			if (!hex.type) return null;
-
+		forHex((hex, x, y) => {
 			// Position style for slots and hexes.
 			let posStyle = calcPos(hex);
 			posStyle.position = "absolute";
 			posStyle.width = "14%";
 
-			// Slots
-			slots.push(<Hex css={posStyle} key={"s_" + hex.x + "_" + hex.y} />);
-
-			// Hex style.
-			const hexStyle = {
-				zIndex: hex.state === GS_EXPLOSION ? 1 : 0,
-				...posStyle
+			let letter = "";
+			if (gameOver) {
+				if (x === 2 && y === 2) letter = "G";
+				if (x === 3 && y === 2) letter = "A";
+				if (x === 4 && y === 2) letter = "M";
+				if (x === 5 && y === 2) letter = "E";
+				if (x === 1 && y === 4) letter = "O";
+				if (x === 2 && y === 4) letter = "V";
+				if (x === 3 && y === 4) letter = "E";
+				if (x === 4 && y === 4) letter = "R";
 			}
 
-			// Hexes
-			let hexItem = <Hex
-				css={hexStyle}
-				type={hex.type}
-				selected={hex.x === selectedHex.x && hex.y === selectedHex.y}
-				animation={buildAnimation(hex)}
-				id={hex.x + "_" + hex.y}
-				key={hex.x + "_" + hex.y}
-				onClick={() => onClickHex(hex)}
-				onAnimationEnd={() => onAnimationEnd(hex)} />
+			// Slots
+			newSlots.push(<Hex data={props.data} letter={letter} css={posStyle} key={"s_" + hex.x + "_" + hex.y} />);
+		});
 
-			hexesItems.push(hexItem);
-		})
+		setSlots(newSlots);
+	};
+	useEffect(buildSlots, []);
+
+	// Builds hexes.
+	let hexesItems = [];
+
+	forHex(hex => {
+		// Buids hex animation.
+		let anim = buildAnimation(hex);
+
+		// Position style for slots and hexes.
+		let hexStyle = calcPos(hex);
+		hexStyle.position = "absolute";
+		hexStyle.width = "14%";
+		hexStyle.zIndex =  hex.state === GS_EXPLOSION ? 1 : 0;
+
+		// Hexes
+		let hexItem = <Hex
+			data={props.data}
+			css={hexStyle}
+			type={hex.type}
+			selected={hex.x === selectedHex.x && hex.y === selectedHex.y}
+			animation={anim}
+			id={hex.x + "_" + hex.y}
+			key={hex.x + "_" + hex.y}
+			onClick={() => onClickHex(hex)}
+			onAnimationEnd={() => onAnimationEnd(hex)} />
+
+		hexesItems.push(hexItem);
 	});
 
 	// Handles hex click events.
@@ -367,8 +481,8 @@ function Board(props) {
 	// Board style
 	let style = css({
 		position: "relative",
-		width: props.size,
-		height: props.size,
+		width: props.data.boardSize,
+		height: props.data.boardSize,
 		backgroundImage: `URL(${bg})`,
 		backgroundSize: "contain"
 	});

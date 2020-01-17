@@ -2,7 +2,7 @@
 
 import { jsx, css } from "@emotion/core";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFireAlt, faWater, faMountain, faWind, faLeaf } from '@fortawesome/free-solid-svg-icons';
+import { faFireAlt, faWater, faMountain, faWind, faLeaf, faPlayCircle, faPlay } from '@fortawesome/free-solid-svg-icons';
 
 // Hex types.
 const HexTypes = {
@@ -74,18 +74,30 @@ function Hex(props) {
 		strokeWidth: 4,
 		fill: "currentColor",
 		animation: props.animation
-		//transition: "all 0.5s ease"
 	};
-	/*if (props.selected) {
-		hexStyle.filter = "drop-shadow(0px 0px 5px)";
-	}*/
-// filter: drop-shadow( 0px 0px 5px green);
+
+	// BG style.
+	const bgStyle = {
+		color: "gold",
+		position: "absolute",
+		top: 0,
+		width: "100%",
+		textAlign: "center"
+	};
+
+	if (props.data) {
+		bgStyle.fontSize = (8 * props.data.gameRatio) + "vmin";
+	}
 
 	// Selects hex type.
 	let icon;
 	let color;
 	let iconStyle;
 	switch (props.type) {
+		// Button types.
+		case "play": icon = faPlay; color = "orange"; break;
+
+		// Game types.
 		case HexTypes.FIRE: icon = faFireAlt; color = "orange"; break;
 		case HexTypes.WATER: icon = faWater; color = "deepskyblue"; break;
 		case HexTypes.EARTH: icon = faMountain; color = "brown"; break;
@@ -119,6 +131,7 @@ function Hex(props) {
 			) : (
 				<HexBg></HexBg>
 			)}
+			<div css={bgStyle}>{ props.letter }</div>
 		</div>
 
 	return hex;
