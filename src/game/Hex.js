@@ -2,7 +2,8 @@
 
 import { jsx, css } from "@emotion/core";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFireAlt, faWater, faMountain, faWind, faLeaf, faPlayCircle, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faFireAlt, faWater, faMountain, faWind, faLeaf, faPlay, faTrophy, faCheck } from '@fortawesome/free-solid-svg-icons';
+import Util from "../Util";
 
 // Hex types.
 const HexTypes = {
@@ -70,6 +71,7 @@ const HexLightsShadows = () =>
 function Hex(props) {
 	// Styles
 	let hexStyle = {
+		color: "black",
 		stroke: (props.selected) ? "white" : "black",
 		strokeWidth: 4,
 		fill: "currentColor",
@@ -95,7 +97,9 @@ function Hex(props) {
 	let iconStyle;
 	switch (props.type) {
 		// Button types.
-		case "play": icon = faPlay; color = "orange"; break;
+		case "play": icon = faPlay; color = Util.colors.buttonColor; break;
+		case "ranking": icon = faTrophy; color = Util.colors.buttonColor; break;
+		case "back": icon = faCheck; color = Util.colors.buttonColor; break;
 
 		// Game types.
 		case HexTypes.FIRE: icon = faFireAlt; color = "orange"; break;

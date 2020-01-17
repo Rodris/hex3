@@ -3,6 +3,9 @@
 import { jsx } from "@emotion/core";
 import Hex, { HexTypes } from "./Hex"
 import { useEffect } from "react";
+import Util from "../Util";
+
+const uiBgImage = `linear-gradient(0deg, ${Util.colors.bg1}, ${Util.colors.bg2})`;
 
 // Total score.
 function ScoreAndMoves(props) {
@@ -32,12 +35,11 @@ function ScoreAndMoves(props) {
 	// Style
 	const style = {
 		zIndex: 10,
-		backgroundImage:  "linear-gradient(0deg, #232323ff, #646464ff)",
+		backgroundImage: uiBgImage,
 		display: "flex",
 		padding: 4,
 		alignItems: "center",
-		fontWeight: "bold",
-		color: "gold"
+		fontWeight: "bold"
 	};
 
 	// Total score and moves.
@@ -48,7 +50,7 @@ function ScoreAndMoves(props) {
 				<div css={textStyle}>{ props.gameSession.score }</div>
 			</div>
 			<div css={labelStyle}>Score</div>
-			<div css={[labelStyle, { textAlign: "right" }]}>Moves</div>
+			<div css={[labelStyle, { textAlign: "right" }]}>Moves<br />Left</div>
 			<div css={hexStyle}>
 				<Hex></Hex>
 				<div css={textStyle}>{ props.gameSession.moves }</div>
@@ -94,7 +96,7 @@ function HexesPowers(props) {
 	let uiStyle = {
 		display: "flex",
 		zIndex: 1,
-		backgroundImage:  "linear-gradient(0deg, #232323ff, #646464ff)"
+		backgroundImage: uiBgImage
 	};
 
 	let ui =

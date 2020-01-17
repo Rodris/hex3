@@ -29,7 +29,7 @@ function Game(props) {
 		// Handles game over event.
 		onGameOver: () => {
 			// Dispatches event to app.
-			props.events.main();
+			props.events.ranking(gameSession.score);
 		}
 	};
 
@@ -47,7 +47,6 @@ function Game(props) {
 		display: "flex",
 		flexDirection: "column",
 		flexGrow: 1,
-		backgroundImage:  "linear-gradient(0deg, #666666ff, #a5a6a5ff)",
 		width: props.boardSize,
 		pointerEvents: (gameSession.moves > 0) ? "all" : "none"
 	};

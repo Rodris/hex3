@@ -8,8 +8,6 @@ function Main(props) {
 	// Style
 	const style = {
 		height: "100%",
-		color: "gold",
-		backgroundImage: "linear-gradient(-45deg, midnightblue, cornflowerblue)",
 		display: "flex",
 		flexDirection: "column",
 		fontSize: (25 * props.data.gameRatio) + "vmin",
@@ -20,14 +18,16 @@ function Main(props) {
 	const titleStyle = {
 		filter: "drop-shadow(0px 0px 5px black)"
 	};
-console.log(props.data.gameRatio);
+
+	const hexStyle = {
+		width: "30%"
+	}
+
 	return (
 		<div css={style}>
 			<div css={titleStyle}>Hex 3</div>
-			<Hex
-				type="play"
-				css={{ width: "30%" }}
-				onClick={() => props.events.play()}></Hex>
+			<Hex type="play" css={hexStyle} onClick={() => props.events.play()}></Hex>
+			<Hex type="ranking" css={hexStyle} onClick={() => props.events.ranking()}></Hex>
 		</div>
 	);
 }
