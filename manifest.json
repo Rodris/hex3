@@ -1,0 +1,10 @@
+{
+  "short_name": "Hex 3",
+  "name": "Match 3 game with hexagons.",
+  "icons": [
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
