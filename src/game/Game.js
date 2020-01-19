@@ -39,13 +39,13 @@ function Game(props) {
 	const style = {
 		height: "100%",
 		display: "flex",
-		flexDirection: "column"
+		flexDirection: props.data.landscape ? "row" : "column"
 	};
 
 	// Board bg style.
 	const bgStyle = {
 		display: "flex",
-		flexDirection: "column",
+		flexDirection: props.data.landscape ? "row" : "column",
 		flexGrow: 1,
 		width: props.boardSize,
 		pointerEvents: (gameSession.moves > 0) ? "all" : "none"
@@ -53,8 +53,8 @@ function Game(props) {
 
 	return (
 		<div className="Game" css={style}>
-			<ScoreAndMoves gameSession={gameSession}></ScoreAndMoves>
-			<HexesPowers onScoresPositions={(pos) => scoresPositions = pos}></HexesPowers>
+			<ScoreAndMoves data={props.data} gameSession={gameSession}></ScoreAndMoves>
+			<HexesPowers data={props.data} onScoresPositions={(pos) => scoresPositions = pos}></HexesPowers>
 			<div css={bgStyle}>
 				<div className="filler"></div>
 				<Board

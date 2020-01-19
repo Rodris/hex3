@@ -3,29 +3,43 @@
 import { jsx } from "@emotion/core"
 import Main from './main/Main';
 import Game from './game/Game';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Ranking from "./ranking/Ranking";
 import Util from "./Util";
 
-// Retrieves viewport dimensions.
-const w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-const h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+// Setups game data.
+function init() {
+	// Retrieves body dimensions.
+	const bodyRect = document.body.getBoundingClientRect();
 
-// App data.
-let data = {};
-data.boardSize = Math.min(500, w, h);
-data.gameRatio = data.boardSize / Math.min(w, h)
+	// App data.
+	let data = {};
+	data.landscape = (bodyRect.height < bodyRect.width && bodyRect.height < 700);
+	if (data.landscape) {
+		data.gameHeight = Math.min(bodyRect.height, 500);
+		data.gameWidth = Math.min(bodyRect.width, 9 * data.gameHeight / 5);
+		data.boardSize = Math.min(data.gameHeight, 5 * data.gameWidth / 7);
+	} else {
+		data.gameWidth = Math.min(bodyRect.width, 500);
+		data.gameHeight = Math.min(bodyRect.height, 9 * data.gameWidth / 5);
+		data.boardSize = Math.min(data.gameWidth, 5 * data.gameHeight / 7);
+	}
+	data.minSize = Math.min(data.gameWidth, data.gameHeight);
+	data.uiSize = data.boardSize / 5;
+	data.gameRatio = data.boardSize / Math.min(bodyRect.width, bodyRect.height)
 
-// App style.
-const style = {
-	maxWidth: 500,
-	maxHeight: 800,
-	height: "100%",
-	margin: "auto",
-	overflow: "hidden",
-	color: Util.colors.fontColor,
-	backgroundImage: `linear-gradient(-45deg, ${Util.colors.bg1}, ${Util.colors.bg2})`
-};
+	// App style.
+	data.style = {
+		width: data.gameWidth,
+		height: data.gameHeight,
+		margin: "auto",
+		overflow: "hidden",
+		color: Util.colors.fontColor,
+		backgroundImage: `linear-gradient(-45deg, ${Util.colors.bg1}, ${Util.colors.bg2})`
+	};
+
+	return data;
+}
 
 function App() {
 	// Available app states.
@@ -35,9 +49,21 @@ function App() {
 		AS_RANK = "ranking";
 
 	// Current app state.
+	let [ data, setData ] = useState(init());
 	let [ state, setState ] = useState(AS_MAIN);
 	let [ score, setScore ] = useState(0);
 	let appContent;
+
+	// Handles device orientation change event.
+	useEffect(() => {
+		const updateAppSize = () => {
+			setTimeout(() => {
+				setData(init());
+			}, 50);
+		};
+		window.addEventListener("orientationchange", updateAppSize);
+		window.addEventListener("resize", updateAppSize);
+	}, []);
 
 	// App events.
 	const events = {
@@ -66,7 +92,7 @@ function App() {
 	}
 
 	return (
-		<div className="App" css={style}>
+		<div className="App" css={data.style}>
 			{ appContent }
 		</div>
   	);

@@ -80,14 +80,12 @@ function Ranking(props) {
 		position: "absolute",
 		top: 3,
 		right: 8,
-		width: "17%"
+		width: 0.17 * props.data.minSize
 	};
 
 	const scoreStyle = {
-		position: "absolute",
+		...hexStyle,
 		top: 16,
-		right: 8,
-		width: "17%",
 		textAlign: "center",
 		fontSize: (6 * props.data.gameRatio) + "vmin"
 	};

@@ -11,14 +11,13 @@ const uiBgImage = `linear-gradient(0deg, ${Util.colors.bg1}, ${Util.colors.bg2})
 function ScoreAndMoves(props) {
 	// Label style.
 	const labelStyle = {
-		width: "30%",
 		padding: 6
 	};
 
 	// Hex style.
 	const hexStyle = {
 		position: "relative",
-		width: "20%"
+		width: props.data.landscape ? "100%" : "20%"
 	};
 
 	// Text style.
@@ -34,9 +33,11 @@ function ScoreAndMoves(props) {
 
 	// Style
 	const style = {
+		width: props.data.landscape ? props.data.uiSize : "100%",
 		zIndex: 10,
 		backgroundImage: uiBgImage,
 		display: "flex",
+		flexDirection: props.data.landscape ? "column" : "row",
 		padding: 4,
 		alignItems: "center",
 		fontWeight: "bold"
@@ -49,8 +50,8 @@ function ScoreAndMoves(props) {
 				<Hex></Hex>
 				<div css={textStyle}>{ props.gameSession.score }</div>
 			</div>
-			<div css={labelStyle}>Score</div>
-			<div css={[labelStyle, { textAlign: "right" }]}>Moves<br />Left</div>
+			<div css={[labelStyle, { flexGrow: 1 }]}>Score</div>
+			<div css={labelStyle}>Moves<br />Left</div>
 			<div css={hexStyle}>
 				<Hex></Hex>
 				<div css={textStyle}>{ props.gameSession.moves }</div>
@@ -79,7 +80,6 @@ function HexesPowers(props) {
 	const scores = Object.values(HexTypes).map(ht => {
 		const elementStyle = {
 			padding: 4,
-			width: 0,
 			flexGrow: 1
 		};
 		const hexStyle = {
@@ -95,6 +95,8 @@ function HexesPowers(props) {
 	// Style
 	let uiStyle = {
 		display: "flex",
+		flexDirection: props.data.landscape ? "column" : "row",
+		width: props.data.landscape ? props.data.uiSize : "100%",
 		zIndex: 1,
 		backgroundImage: uiBgImage
 	};
