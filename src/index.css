@@ -4,10 +4,10 @@
     src: url(./PatrickHand-Regular.ttf) format('truetype');
 }
 
-html, body, #root {
+html, body, input, #root {
 	margin: 0;
 	height: 100%;
-	font-family: "Hex3Font";
+	font-family: "Hex3Font" !important;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
