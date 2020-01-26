@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/hex3/static/css/main.004841c5.chunk.css",
-    "main.js": "/hex3/static/js/main.7d973d77.chunk.js",
-    "main.js.map": "/hex3/static/js/main.7d973d77.chunk.js.map",
+    "main.js": "/hex3/static/js/main.d3b6958c.chunk.js",
+    "main.js.map": "/hex3/static/js/main.d3b6958c.chunk.js.map",
     "runtime-main.js": "/hex3/static/js/runtime-main.2a6d6a45.js",
     "runtime-main.js.map": "/hex3/static/js/runtime-main.2a6d6a45.js.map",
     "static/js/2.4165c30f.chunk.js": "/hex3/static/js/2.4165c30f.chunk.js",
     "static/js/2.4165c30f.chunk.js.map": "/hex3/static/js/2.4165c30f.chunk.js.map",
     "index.html": "/hex3/index.html",
-    "precache-manifest.f3a88b8cad9671cc6f2e8e8803469c71.js": "/hex3/precache-manifest.f3a88b8cad9671cc6f2e8e8803469c71.js",
+    "precache-manifest.5b76000c6890a0aa5b7c01a7bb96f5c2.js": "/hex3/precache-manifest.5b76000c6890a0aa5b7c01a7bb96f5c2.js",
     "service-worker.js": "/hex3/service-worker.js",
     "static/css/main.004841c5.chunk.css.map": "/hex3/static/css/main.004841c5.chunk.css.map",
     "static/js/2.4165c30f.chunk.js.LICENSE": "/hex3/static/js/2.4165c30f.chunk.js.LICENSE",
@@ -19,6 +19,6 @@
     "static/js/runtime-main.2a6d6a45.js",
     "static/js/2.4165c30f.chunk.js",
     "static/css/main.004841c5.chunk.css",
-    "static/js/main.7d973d77.chunk.js"
+    "static/js/main.d3b6958c.chunk.js"
   ]
 }
