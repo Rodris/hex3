@@ -1,6 +1,7 @@
 /** @jsx jsx */
 
 import { jsx } from "@emotion/core";
+import { useState, useEffect } from "react";
 import Hex from "../game/Hex";
 import Util from "../Util";
 
@@ -20,28 +21,6 @@ const defaultRanking = [
 
 // Ranking screen.
 function Ranking(props) {
-	// Tries to load saved ranking.
-	let savedRanking = JSON.parse(localStorage.getItem("ranking"));
-
-	// State
-	//const [ ranking, setRanking ] = useState(savedRanking || defaultRanking);
-	let ranking = (savedRanking || defaultRanking);
-	let rating = { score: props.score, new: true };
-
-	// Checks if a new score is in ranking.
-	let newPos = ranking.findIndex(rating => rating.score < props.score);
-
-	if (newPos >= 0) {
-		// Adds new rating to the ranking.
-		ranking.splice(newPos, 0, rating);
-		ranking.pop();
-	}
-
-	// Updates rating name.
-	const onRatingName = (event) => {
-		rating.name = event.target.value;
-	};
-
 	// Style
 	const style = {
 		height: "100%",
@@ -95,29 +74,54 @@ function Ranking(props) {
 		margin: "auto"
 	};
 
+	// Loads saved ranking.
+	const [ ranking, setRanking ] = useState(JSON.parse(localStorage.getItem("ranking")) || defaultRanking);
+
+	// Checks if a new score is in ranking.
+	let [ newPos ] = useState(ranking.findIndex(rating => rating.score < props.score));
+
+	// Initializes ranking.
+	const init = () => {
+		if (newPos >= 0) {
+			// Adds new rating to the ranking.
+			let rating = { score: props.score };
+			ranking.splice(newPos, 0, rating);
+			ranking.pop();
+			setRanking(ranking.slice(0));
+		}
+	};
+	useEffect(init, []);
+
+	// Rating name change handler.
+	const onRatingName = (event) => {
+		if (newPos >= 0) {
+			let rating = ranking[newPos];
+			rating.name = event.target.value;
+		}
+	};
+
 	// Builds ratings.
-	const ratings = ranking.map((rating, i) => 
+	const ratings = ranking.map((r, i) => 
 		<div css={ratingStyle} key={i}>
-			{ rating.new ? (
+			{ i === newPos ? (
 				<div><input autoFocus type="text" css={inputStyle} onChange={onRatingName}></input></div>
 			) : (
-				<div>{ rating.name }</div>
+				<div>{ r.name }</div>
 			)}
 			<Hex css={hexStyle}>ok</Hex>
-			<div css={scoreStyle}>{ rating.score }</div>
+			<div css={scoreStyle}>{ r.score }</div>
 		</div>
 	);
 
 	// Confirms ranking.
 	const onOk = () => {
-		// Updates ranking.
-		if (rating.name) {
-			delete rating.new;
+		// Checks if a new rating is set.
+		if (newPos >= 0) {
+			// Saves ranking.
+			localStorage.setItem("ranking", JSON.stringify(ranking));
 		}
-		//setRanking(ranking.slice(0));
-		localStorage.setItem("ranking", JSON.stringify(ranking));
 
-		// Returns to main scree.
+		// Returns to main screen.
 		props.events.main();
 	};
 
